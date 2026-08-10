@@ -1,26 +1,26 @@
-import tarfile
+import boto3
 import os
 from datetime import datetime
 
-# Configuration for a local backup archive
-SOURCE_DIR = '/home/ec2-user'
-BACKUP_DIR = '/home/ec2-user/backups'
+SOURCE_DIR = "/var/log/nginx/old_logs"
+BUCKET_NAME = "sysadmin-box-541099637062-541099637062-ap-south-1-an"
 
-# Ensure backup directory exists
-os.makedirs(BACKUP_DIR, exist_ok=True)
+def upload_logs():
+    s3 = boto3.client("s3")
 
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-backup_filename = f"backup_{timestamp}.tar.gz"
-backup_path = os.path.join(BACKUP_DIR, backup_filename)
+    for filename in os.listdir(SOURCE_DIR):
+        file_path = os.path.join(SOURCE_DIR, filename)
 
-def create_backup():
-    try:
-        print(f"Creating backup of {SOURCE_DIR}...")
-        with tarfile.open(backup_path, "w:gz") as tar:
-            tar.add(SOURCE_DIR, arcname=os.path.basename(SOURCE_DIR))
-        print(f"Backup created successfully at {backup_path}")
-    except Exception as e:
-        print(f"Backup failed: {e}")
+        if os.path.isfile(file_path):
+            print(f"Uploading {filename}...")
 
-if __name__ == '__main__':
-    create_backup()
+            s3.upload_file(
+                file_path,
+                BUCKET_NAME,
+                f"nginx-logs/{filename}"
+            )
+
+            print(f"Uploaded {filename} successfully.")
+
+if __name__ == "__main__":
+    upload_logs()
