@@ -1,4 +1,5 @@
 
+
 # Project 1 — SysAdmin Box
 
 Automated Linux Server on AWS with Nginx, Log Cleanup, and S3 Backups.
@@ -7,29 +8,99 @@ This is my first hands-on DevOps project. The goal was to set up a real server, 
 
 Status: Completed — Working live on AWS.
 
-<p>
-  <img src="screenshots/website.png" width="420" alt="Website running on Nginx" />
-  &nbsp;&nbsp;&nbsp;
-  <img src="screenshots/s3.png" width="420" alt="S3 backup with .gz files" />
-</p>
+<table>
+<tr>
+<td width="50%" valign="top">
 
-## Overview
+###
+<img src="screenshots/website.png" width="320" alt="Website running live on Nginx" />
 
-- **Server:** AWS EC2, Amazon Linux 2023
-- **Web Server:** Nginx, hosting a status page
-- **Log Cleanup:** Bash script (`scripts/log-cleanup.sh`)
-- **Cloud Backup:** Python script (`scripts/s3-backup.py`) using boto3
-- **Automation:** Cron, runs daily at 2 AM
-- **Security:** IAM Role for EC2 to S3 access, no credentials stored in code
+Website running live on Nginx.
 
-## How It Works
+</td>
+<td width="50%" valign="top">
 
-1. A user visits the website, Nginx serves the page and generates logs.
-2. Every night at 2 AM, `log-cleanup.sh` finds Nginx logs older than 7 days, compresses them to `.gz`, and moves them to `/var/log/nginx/old_logs`. Archives older than 30 days are deleted.
-3. `s3-backup.py` then uploads only the `.gz` files from that folder to the S3 bucket, under `backups/`.
-4. The server stays clean, and the logs remain safely stored in S3.
+### 
+<img src="screenshots/s3.png" width="320" alt="S3 backup with .gz file" />
 
-## Project Structure
+S3 backup folder with .gz log file.
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### Server
+**AWS EC2**
+Amazon Linux 2023
+Host everything
+
+</td>
+<td width="50%" valign="top">
+
+### Web Server
+**Nginx**
+Serve website
+Generate logs
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### Log Cleanup
+**`scripts/log-cleanup.sh`**
+Bash
+Find >7 days, compress to `.gz`, delete >30 days
+
+</td>
+<td width="50%" valign="top">
+
+### Cloud Backup
+**`scripts/s3-backup.py`**
+Python + boto3
+Upload only `.gz` to S3 `backups/`
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### Automation
+**Cron**
+`0 2 * * *`
+Daily at 2 AM
+
+```bash
+0 2 * * * /home/ec2-user/sysadmin-box/scripts/log-cleanup.sh
+```
+
+</td>
+<td width="50%" valign="top">
+
+### Security
+**IAM Role**
+`sysadmin-box-ec2-s3-role`
+EC2 → S3 only
+No keys in code
+
+</td>
+</tr>
+</table>
+
+### Flow
+
+| Step | What Happens |
+| :---: | :--- |
+| 1 | User visits, Nginx serves, logs made |
+| 2 | Cleanup compresses logs older than 7 days |
+| 3 | Backup uploads `.gz` to S3 |
+| 4 | Server stays clean, logs stay safe |
+
+### Project Structure
 
 ```
 sysadmin-box/
@@ -40,42 +111,21 @@ sysadmin-box/
 │   ├── log-cleanup.sh
 │   └── s3-backup.py
 └── readme.md
-```
 
-## Cron Setup
 
-```bash
-0 2 * * * /home/ec2-user/sysadmin-box/scripts/log-cleanup.sh
-```
 
-Check with: `crontab -l`
+### What I Learned
 
-## IAM Setup
+| | |
+| :--- | :--- |
+| 1 | Managing remote Linux via SSH / Instance Connect |
+| 2 | Installing and configuring Nginx |
+| 3 | Writing Bash scripts |
+| 4 | Scheduling with Cron |
+| 5 | Automating AWS with Python + boto3 |
+| 6 | Securing EC2 → S3 with IAM |
+| 7 | Git + GitHub |
 
-```
-IAM Role: sysadmin-box-ec2-s3-role
-Attached to: EC2 instance
-Permission: Allow EC2 to upload to S3 only
-Note: No AWS keys stored in code
-```
+> Most learning came from debugging — permissions, paths, IAM. Fixing those made it clear.
 
-## What I Learned
-
-- Managing a remote Linux server through SSH and EC2 Instance Connect
-- Installing and configuring Nginx
-- Writing Bash scripts for system maintenance
-- Scheduling jobs with Cron
-- Automating AWS tasks with Python and boto3
-- Securing EC2 to S3 access using IAM Roles
-- Using Git and GitHub for version control
-
-## Notes
-
-Most of the learning in this project came from debugging — file permissions, script paths, and IAM permissions. Fixing those issues made the concepts much clearer than just following a tutorial.
-
----
-Status: Completed
-
----
-
-Paste this, make `screenshots/` folder, put 2 PNGs inside, commit. Project 1 = **10/10 Final**.
+```<img width="165" height="165" alt="hello-kitty" src="https://github.com/user-attachments/assets/5f7a472c-7213-48b5-ab53-9ded1af1065f" />
