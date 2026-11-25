@@ -1,70 +1,137 @@
 
-
-```markdown
 # Project 1 — SysAdmin Box
 
-My first hands-on DevOps project. 
+Automated Linux Server on AWS with Nginx, Log Cleanup, and S3 Backups.
 
-I set up a Linux server on AWS, hosted my website with Nginx, and added automated scripts for logs and cloud backups.
+This is my first hands-on DevOps project. The goal was to set up a real server, host a website on it, and automate the maintenance work that is usually forgotten — log cleanup and backups.
 
-## What I Built
+Status: Completed — Working live on AWS.
 
-* **AWS EC2:** Deployed and configured a server running Amazon Linux 2023.
-* **Nginx:** Installed and configured the web server to host the project status page.
-* **Log Management:** Built a Bash script (`log-cleanup.sh`) to rotate, compress, and purge old Nginx logs.
-* **Cloud Backups:** Developed a Python script (`s3-backup.py`) utilizing `boto3` to securely upload log archives to an AWS S3 bucket.
-* **Automation:** Configured automated cron jobs to run log maintenance and backups on a schedule.
-* **Security & IAM:** Configured roles and access for secure communication between EC2 and AWS services.
-* **Version Control:** Managed source code and documentation using Git and GitHub.
+## Overview
+
+- **Server:** AWS EC2, Amazon Linux 2023
+- **Web Server:** Nginx, hosting a status page
+- **Log Cleanup:** Bash script (`log-cleanup.sh`)
+- **Cloud Backup:** Python script (`s3-backup.py`) using boto3
+- **Automation:** Cron, runs daily at 2 AM
+- **Security:** IAM Role for EC2 to S3 access, no credentials stored in code
 
 ## How It Works
 
-```text
-Website Request
-       ↓
-     Nginx
-       ↓
-   EC2 Server
-    ↙      ↘
-  Logs    Backups
-   ↓         ↓
- Bash      Python
-   ↓         ↓
-Archive     S3 Bucket
-
-```
+1. A user visits the website, Nginx serves the page and generates logs.
+2. Every night at 2 AM, `log-cleanup.sh` finds Nginx logs older than 7 days, compresses them to `.gz`, and moves them to `/var/log/nginx/old_logs`. Archives older than 30 days are deleted.
+3. `s3-backup.py` then uploads only the `.gz` files from that folder to the S3 bucket, under `backups/`.
+4. The server stays clean, and the logs remain safely stored in S3.
 
 ## Project Structure
 
-```text
+```
 sysadmin-box/
 ├── scripts/
 │   ├── log-cleanup.sh
 │   └── s3-backup.py
 └── README.md
-
 ```
 
-## Project Reflections
+## Script 1 — log-cleanup.sh
 
-This was a hands-on learning project to build comfort with Linux environments, core AWS services, and basic DevOps workflows.
+```bash
+#!/bin/bash
+set -e
 
-Working through real-time debugging—from configuring file permissions to troubleshooting script paths and AWS credentials—made the learning experience practical and rewarding.
+LOG_DIR="/var/log/nginx"
+BACKUP_DIR="/var/log/nginx/old_logs"
+DAYS=7
+
+echo "Starting log cleanup process..."
+
+mkdir -p "$BACKUP_DIR"
+
+find "$LOG_DIR" -maxdepth 1 -name "*.log" -mtime +$DAYS | while read -r file; do
+    echo "Processing old log: $file"
+    ls -lh "$file" | awk '{print "File: " $9 ", Size: " $5}'
+    gzip "$file" && mv "$file.gz" "$BACKUP_DIR/"
+done
+
+find "$BACKUP_DIR" -name "*.gz" -mtime +30 -exec rm -f {} \;
+
+echo "Log cleanup and compression completed successfully."
+```
+
+## Script 2 — s3-backup.py
+
+```python
+import boto3
+import os
+
+SOURCE_DIR = "/var/log/nginx/old_logs"
+BUCKET_NAME = "sysadmin-box-541099637062-541099637062-ap-south-1-an"
+REGION = "ap-south-1"
+
+def upload_logs():
+    if not os.path.exists(SOURCE_DIR):
+        print(f"Folder not found: {SOURCE_DIR}")
+        return
+
+    s3 = boto3.client("s3", region_name=REGION)
+
+    files = os.listdir(SOURCE_DIR)
+    if not files:
+        print("No files to upload.")
+        return
+
+    for filename in files:
+        file_path = os.path.join(SOURCE_DIR, filename)
+
+        if not os.path.isfile(file_path):
+            continue
+        if not filename.endswith(".gz"):
+            continue
+
+        print(f"Uploading {filename}...")
+
+        try:
+            s3.upload_file(
+                file_path,
+                BUCKET_NAME,
+                f"backups/{filename}"
+            )
+            print(f"Uploaded {filename} successfully.")
+        except Exception as e:
+            print(f"Failed to upload {filename}: {e}")
+
+if __name__ == "__main__":
+    upload_logs()
+```
+
+## Cron Setup
+
+```bash
+0 2 * * * /home/ec2-user/sysadmin-box/scripts/log-cleanup.sh
+```
+
+Check with: `crontab -l`
+
+## IAM Setup
+
+```
+IAM Role: sysadmin-box-ec2-s3-role
+Attached to: EC2 instance
+Permission: Allow EC2 to upload to S3 only
+Note: No AWS keys stored in code
+```
 
 ## What I Learned
 
-* Managing a remote Linux server via SSH
-* Web server deployment and configuration with Nginx
-* Writing automated maintenance scripts in Bash
-* Scheduling routine tasks with Cron
-* Building cloud automation scripts in Python using `boto3`
-* Interfacing EC2 securely with AWS S3 using IAM
-* Maintaining clean version control with Git and GitHub
+- Managing a remote Linux server through SSH and EC2 Instance Connect
+- Installing and configuring Nginx
+- Writing Bash scripts for system maintenance
+- Scheduling jobs with Cron
+- Automating AWS tasks with Python and boto3
+- Securing EC2 to S3 access using IAM Roles
+- Using Git and GitHub for version control
 
----
+## Notes
 
-**Status:** Completed ✅
+Most of the learning in this project came from debugging — file permissions, script paths, and IAM permissions. Fixing those issues made the concepts much clearer than just following a tutorial.
 
-```
-
-```
