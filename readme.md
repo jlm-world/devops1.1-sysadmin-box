@@ -128,4 +128,4 @@ sysadmin-box/
 
 > Most learning came from debugging — permissions, paths, IAM. Fixing those made it clear.
 
-```<img width="165" height="165" alt="hello-kitty" src="https://github.com/user-attachments/assets/5f7a472c-7213-48b5-ab53-9ded1af1065f" />
+
