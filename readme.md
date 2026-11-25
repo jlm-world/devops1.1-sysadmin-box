@@ -39,7 +39,7 @@ sysadmin-box/
 ├── scripts/
 │   ├── log-cleanup.sh
 │   └── s3-backup.py
-└── README.md
+└── readme.md
 ```
 
 ## Cron Setup
