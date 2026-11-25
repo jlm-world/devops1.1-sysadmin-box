@@ -7,8 +7,11 @@ This is my first hands-on DevOps project. The goal was to set up a real server, 
 
 Status: Completed — Working live on AWS.
 
-![Website](website.png)
-![S3 Backup](s3.png)
+<p>
+  <img src="screenshots/website.png" width="420" alt="Website running on Nginx" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="screenshots/s3.png" width="420" alt="S3 backup with .gz files" />
+</p>
 
 ## Overview
 
@@ -30,6 +33,9 @@ Status: Completed — Working live on AWS.
 
 ```
 sysadmin-box/
+├── screenshots/
+│   ├── website.png
+│   └── s3.png
 ├── scripts/
 │   ├── log-cleanup.sh
 │   └── s3-backup.py
@@ -72,4 +78,4 @@ Status: Completed
 
 ---
 
-Paste this, upload your 2 PNGs, commit. Project 1 = **10/10 Final**, my student. 🎉
+Paste this, make `screenshots/` folder, put 2 PNGs inside, commit. Project 1 = **10/10 Final**.
