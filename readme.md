@@ -7,12 +7,15 @@ This is my first hands-on DevOps project. The goal was to set up a real server, 
 
 Status: Completed — Working live on AWS.
 
+![Website](website.png)
+![S3 Backup](s3.png)
+
 ## Overview
 
 - **Server:** AWS EC2, Amazon Linux 2023
 - **Web Server:** Nginx, hosting a status page
-- **Log Cleanup:** Bash script (`log-cleanup.sh`)
-- **Cloud Backup:** Python script (`s3-backup.py`) using boto3
+- **Log Cleanup:** Bash script (`scripts/log-cleanup.sh`)
+- **Cloud Backup:** Python script (`scripts/s3-backup.py`) using boto3
 - **Automation:** Cron, runs daily at 2 AM
 - **Security:** IAM Role for EC2 to S3 access, no credentials stored in code
 
@@ -31,77 +34,6 @@ sysadmin-box/
 │   ├── log-cleanup.sh
 │   └── s3-backup.py
 └── README.md
-```
-
-## Script 1 — log-cleanup.sh
-
-```bash
-#!/bin/bash
-set -e
-
-LOG_DIR="/var/log/nginx"
-BACKUP_DIR="/var/log/nginx/old_logs"
-DAYS=7
-
-echo "Starting log cleanup process..."
-
-mkdir -p "$BACKUP_DIR"
-
-find "$LOG_DIR" -maxdepth 1 -name "*.log" -mtime +$DAYS | while read -r file; do
-    echo "Processing old log: $file"
-    ls -lh "$file" | awk '{print "File: " $9 ", Size: " $5}'
-    gzip "$file" && mv "$file.gz" "$BACKUP_DIR/"
-done
-
-find "$BACKUP_DIR" -name "*.gz" -mtime +30 -exec rm -f {} \;
-
-echo "Log cleanup and compression completed successfully."
-```
-
-## Script 2 — s3-backup.py
-
-```python
-import boto3
-import os
-
-SOURCE_DIR = "/var/log/nginx/old_logs"
-BUCKET_NAME = "sysadmin-box-541099637062-541099637062-ap-south-1-an"
-REGION = "ap-south-1"
-
-def upload_logs():
-    if not os.path.exists(SOURCE_DIR):
-        print(f"Folder not found: {SOURCE_DIR}")
-        return
-
-    s3 = boto3.client("s3", region_name=REGION)
-
-    files = os.listdir(SOURCE_DIR)
-    if not files:
-        print("No files to upload.")
-        return
-
-    for filename in files:
-        file_path = os.path.join(SOURCE_DIR, filename)
-
-        if not os.path.isfile(file_path):
-            continue
-        if not filename.endswith(".gz"):
-            continue
-
-        print(f"Uploading {filename}...")
-
-        try:
-            s3.upload_file(
-                file_path,
-                BUCKET_NAME,
-                f"backups/{filename}"
-            )
-            print(f"Uploaded {filename} successfully.")
-        except Exception as e:
-            print(f"Failed to upload {filename}: {e}")
-
-if __name__ == "__main__":
-    upload_logs()
 ```
 
 ## Cron Setup
@@ -135,3 +67,9 @@ Note: No AWS keys stored in code
 
 Most of the learning in this project came from debugging — file permissions, script paths, and IAM permissions. Fixing those issues made the concepts much clearer than just following a tutorial.
 
+---
+Status: Completed
+
+---
+
+Paste this, upload your 2 PNGs, commit. Project 1 = **10/10 Final**, my student. 🎉
