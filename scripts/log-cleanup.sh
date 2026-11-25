@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 LOG_DIR="/var/log/nginx"
 BACKUP_DIR="/var/log/nginx/old_logs"
@@ -15,11 +16,8 @@ find "$LOG_DIR" -maxdepth 1 -name "*.log" -mtime +$DAYS | while read -r file; do
     # Optional use of grep/awk to filter or inspect log stats before compressing
     ls -lh "$file" | awk '{print "File: " $9 ", Size: " $5}'
     
-    # Compress the log file
-    gzip "$file"
-    
-    # Move the gzipped file to the archive directory
-    mv "$file.gz" "$BACKUP_DIR/"
+    # Compress the log file and move it only if compress works
+    gzip "$file" && mv "$file.gz" "$BACKUP_DIR/"
 done
 
 # Clean up compressed logs older than 30 days from the backup folder
